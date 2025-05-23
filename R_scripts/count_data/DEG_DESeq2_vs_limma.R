@@ -255,4 +255,88 @@ dev.off()
 
 
 
-head(dds_c53s_24_vs_0)
+############so now after getting the DEG
+#we want to see the RPKM of the top DEG accross the different
+#conditions (WT, Mock, and C53S 24h vs 0h)
+##first we need to load the DEG and extract them
+
+list.files()
+deg_wt = read.csv("count_data/DESeq2_results_WT_24h_vs_0h.csv")
+deg_wt = deg_wt[abs(deg_wt$log2FoldChange) > 0.5&
+                deg_wt$padj < 0.05,]
+deg_wt = na.omit(deg_wt)
+#now let us extract the top 5 DEG
+deg_wt = deg_wt[order(abs(deg_wt$log2FoldChange),
+                      decreasing = TRUE),]
+genes_wt = deg_wt$X[1:5]#for the wt
+
+deg_mock = read.csv("count_data/DESeq2_results_MOCK_24h_vs_0h.csv")
+deg_mock = deg_mock[abs(deg_mock$log2FoldChange) > 0.5&
+                  deg_mock$padj < 0.05,]
+deg_mock = na.omit(deg_mock)
+#now let us extract the top 5 DEG
+deg_mock = deg_mock[order(abs(deg_mock$log2FoldChange),
+                      decreasing = TRUE),]
+genes_mock = deg_mock$X[1:5]#for the wt
+
+deg_c53s = read.csv("count_data/DESeq2_results_C53S_24h_vs_0h.csv")
+deg_c53s = deg_c53s[abs(deg_c53s$log2FoldChange) > 0.5&
+                  deg_c53s$padj < 0.05,]
+deg_c53s = na.omit(deg_c53s)
+#now let us extract the top 5 DEG
+deg_c53s = deg_c53s[order(abs(deg_c53s$log2FoldChange),
+                      decreasing = TRUE),]
+genes_c53s = deg_c53s$X[1:5]#for the wt
+
+#now we combine the gene lists
+genes_deg = unique(c(genes_wt, genes_c53s, genes_mock))
+
+
+#now we want to plot the RPKM of these genes
+#using the different conditions 
+
+#first load the RPKM file
+rpkm = read.csv("count_data/rpkm.csv")
+names = names(rpkm)
+#get comparisons of interest
+conditions = names[grepl("0h|24h", names)]
+gene_to_ensembl = read.csv("count_data/ensembl_to_gene_conversion.csv")
+head(gene_to_ensembl)
+rpkm = merge(rpkm,
+             gene_to_ensembl,
+             by.x = "X",
+             by.y = "V1")
+rpkm = rpkm[, c("V2", conditions)]
+names(rpkm)[1] = "gene_name"
+rpkm = rpkm[rpkm$gene_name %in% genes_deg,]
+### so now we have our rpkm
+
+##we change to long data format
+library(tidyr)
+library(stringr)
+rpkm_long1 = pivot_longer( data = rpkm,
+                           cols = contains("h"),
+                           names_to = "condition_time",
+                           values_to = "rpkm")
+
+rpkm_long1 = as.data.frame(rpkm_long1)
+rpkm_long1$condition = sub("\\..*$", "", rpkm_long1$condition_time)
+rpkm_long1$time = str_extract(rpkm_long1$condition_time,
+                              "\\d+h")
+###now we can start graphing
+library(ggplot2)
+rpkm_graph = ggplot(rpkm_long1,
+                    aes( x = gene_name,
+                         y =log10(rpkm),
+                         colour = time)) +
+  geom_point() +
+  labs(title = "RPKM for top DEG",
+       x= "Gene",
+       y = "Log10(RPKM)") +
+  facet_grid( condition~.)
+rpkm_graph
+
+pdf("plots/RPKM_comparison_top_DEG_WT_C53S_Mock.pdf",
+    width = 12, height = 8)
+rpkm_graph
+dev.off()
