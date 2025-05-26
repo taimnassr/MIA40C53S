@@ -80,3 +80,7 @@ abs(log2fc) more than 0.5 and p.adj less than 0.05. we used 0.5 instead of 1 for
 
 KEGG_DESeq2_C53S_24h_vs_0h
 This is the KEGG of the results of the DESeq2 comparison between C53S 24h vs 0h taking into consideration all timepoints and condition. Note that the DEG here are from the list above directly with a threshold of 0.5 for abs log2fc
+
+DESeq2_results_C53S_24h_vs_0h_vs_WT
+so here is the results of DESEQ analaysis using ONLY WT and C53S data. Here we did a contract between time_24h_vs_0h and ConditionC53S.time24h not only focusing on the time part according to the tutorial that was suggested by 
+https://www.atakanekiz.com/technical/a-guide-to-designs-and-contrasts-in-DESeq2/#two-factors-with-interaction
