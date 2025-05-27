@@ -510,3 +510,25 @@ identical(res_c53s_24[do.call(order, res_c53s_24),],
 
 nrow(res_c53s_24)
 nrow(deseq_c53s_24_2)
+
+
+####ok now we want to try what is mentioned in 
+#the tutorial according to section 3.2.5
+#I will reload the dds object and coldata 
+### from above
+res_c53s_24 =results(dds, 
+                     contrast = list("conditionC53S.time24h"))
+res_c53s_24 = as.data.frame(res_c53s_24)
+res_c53s_24 = na.omit(res_c53s_24)
+write.csv(res_c53s_24, 
+          "count_data/DESeq2_results_C53S_24h_vs_0h_vs_WT.csv")
+deg_c53s_24 = res_c53s_24[abs(res_c53s_24$log2FoldChange) > 0.5 &
+                          res_c53s_24$padj < 0.05,]
+
+### no will graph the volcano plot
+
+
+pdf("plots/Volcano_plots/Volcano_plot_C53S_vs_WT_24h_vs_0h.pdf",
+    height = 8,width = 10)
+plot
+dev.off()

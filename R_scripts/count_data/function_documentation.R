@@ -35,7 +35,7 @@ volcano_plots = function(df, title,
   
   plot = ggplot(df, 
                 aes(x = log2FoldChange,
-                    y = -log10(padj + 0.))) +
+                    y = -log10(padj))) +
     geom_point(aes(colour = significance)) +
     scale_color_manual(values = c("Significant" = "red",
                                   "Non-Significant" = "grey"))+
