@@ -31,7 +31,6 @@ volcano_plots = function(df, title,
   sig_df$gene = rownames(sig_df)
   library(ggplot2)
   library(ggrepel)
-  title = paste ("DESeq2 Results", title )
   
   plot = ggplot(df, 
                 aes(x = log2FoldChange,
@@ -48,6 +47,68 @@ volcano_plots = function(df, title,
                         label = gene),
                     size = 3,
                     max.overlaps = 30)+
+    geom_vline(xintercept = c(-log2fc_threshold,
+                              log2fc_threshold), color = "blue")+
+    geom_hline(yintercept = -log10(padj_threshold),
+               ,color = "blue") +
+    ylim(c(0,200)) + 
+    scale_x_continuous(breaks = seq(-5,5, by  = 1),
+                       labels = seq(-5,5, by = 1),
+                       limits = c(-5,5)) 
+  return(plot)
+}
+
+volcano_plots2 = function(df, title,
+                         log2fc_threshold = 1,
+                         padj_threshold = 0.05){
+  
+  #THis function is the same as volcano_plots
+  #but it uses geom_text instead of geom_text_repel
+  #reason for this is that data to be higlighted seem
+  #two small
+  #df should be containing DESEQ log2fc results as dataframe
+  #there should be a column with the log2foldchange
+  #called log2FoldChange  and a column called padj
+  ## also there should be a column called significance
+  # to check whether a gene is considered DEG or not
+  
+  #also the rownames should contain the gene names
+  col_names = c("log2FoldChange", "padj")
+  if(!all( col_names %in% 
+           colnames(df))){
+    stop("Missing columns: log2FoldChange or padj")
+  }
+  
+  #conditon name is like mock vs wt 
+  
+  #sig_threshold is what value should the abs log2fc  be higher
+  #than. usually it is 1 unless you used another sig_threshold
+  df$significance = "Non-Significant"
+  df$significance[abs(df$log2FoldChange) > log2fc_threshold &
+                    df$padj < padj_threshold] = "Significant"
+  
+  df$padj[df$padj == 0] = 1e-100
+  sig_df = df[df$significance == "Significant",]#this is the 
+  #significant df
+  sig_df$gene = rownames(sig_df)
+  library(ggplot2)
+  library(ggrepel)
+  
+  
+  plot = ggplot(df, 
+                aes(x = log2FoldChange,
+                    y = -log10(padj))) +
+    geom_point(aes(colour = significance)) +
+    scale_color_manual(values = c("Significant" = "red",
+                                  "Non-Significant" = "grey"))+
+    labs(title = title,
+         x = "Log2FC",
+         y = "-log10(P. adjusted)")+
+    geom_text(data = sig_df,
+                    mapping = aes(x = log2FoldChange,
+                                  y = -log10(padj),
+                                  label = gene),
+                    size = 3)+
     geom_vline(xintercept = c(-log2fc_threshold,
                               log2fc_threshold), color = "blue")+
     geom_hline(yintercept = -log10(padj_threshold),

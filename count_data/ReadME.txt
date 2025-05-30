@@ -84,3 +84,6 @@ This is the KEGG of the results of the DESeq2 comparison between C53S 24h vs 0h 
 DESeq2_results_C53S_24h_vs_0h_vs_WT
 so here is the results of DESEQ analaysis using ONLY WT and C53S data. Here we did a contract ConditionC53S.time24h not only focusing on the time part according to the tutorial that was suggested by 
 https://www.atakanekiz.com/technical/a-guide-to-designs-and-contrasts-in-DESeq2/#two-factors-with-interaction
+
+Limma_C53S_vs_WT_24h_vs_0h
+this is comparing C53S to WT in the 24h vs 0h change using Limma

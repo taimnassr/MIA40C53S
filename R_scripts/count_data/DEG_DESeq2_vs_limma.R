@@ -532,3 +532,86 @@ pdf("plots/Volcano_plots/Volcano_plot_C53S_vs_WT_24h_vs_0h.pdf",
     height = 8,width = 10)
 plot
 dev.off()
+
+##################################
+##Now foing some extra plots
+
+c53s_wt_24_0 = read.csv("count_data/DESeq2_results_C53S_24h_vs_0h_vs_WT.csv")
+
+##now we wanna try and plot
+rownames(c53s_wt_24_0) = c53s_wt_24_0$X
+
+volcano1 = volcano_plots2(c53s_wt_24_0,
+                        log2fc_threshold = 0.5,
+                        padj_threshold = 0.2,
+                        title = "C53S 24h vs 0h vs WT")
+volcano1 = volcano1 + ylim(0,5)
+volcano1
+pdf("plots/Volcano_plots/Volcano_plot_C53S_vs_WT_24h_vs_0h_p_adj_0.2.pdf",
+    width = 10, height = 8)
+volcano1
+dev.off()
+
+volcano2 = volcano_plots2(df = c53s_wt_24_0,
+                         log2fc_threshold = 0,
+                         padj_threshold = 0.05,
+                         title = "C53S 24h vs 0h vs WT")
+volcano2 = volcano2 + ylim(0,5)
+pdf("plots/Volcano_plots/Volcano_plot_C53S_vs_WT_24h_vs_0h_no_log2fc_threshold.pdf",
+    width = 10, height = 8)
+volcano2
+dev.off()
+
+
+##### now we want to use limma 
+## to do the C53S 24h vs 0h vs WT
+
+###first let us load the count_matrix
+
+count_data = read.csv("count_data/valid_count_data.csv",
+                      header = TRUE)
+#we did this as done before
+#same with coldata
+all(names(count_matrix) == rownames(coldata))
+head(coldata)
+coldata$interaction = paste(coldata$condition,
+                            coldata$time,
+                            sep = "_")
+coldata$interaction = factor(coldata$interaction)
+
+design_matrix = model.matrix( ~ 0 + interaction,
+                              data = coldata)
+head(design_matrix)
+colnames(design_matrix)
+
+##### so now we apply voom and limma
+library(limma)
+library(edgeR)
+
+dge = DGEList(counts = count_matrix)
+dge = calcNormFactors(dge)
+v = voom(dge,design_matrix)
+fit = lmFit(v, design_matrix)### so now 
+##we did a fit
+
+
+###now we want to contrast
+## we want to find the difference between
+#C53S between 24h and 0h and WT between 24h and 0h
+colnames(design_matrix)
+contrast_c53s_wt_24_0 = makeContrasts(
+  Interaction = (interactionC53S_24h - interactionC53S_0h) -
+    (interactionWT_24h - interactionWT_0h),
+  levels = design_matrix
+)
+fit2 = contrasts.fit(fit,
+                     contrast_c53s_wt_24_0)
+fit2 = eBayes(fit2)
+fit2$contrasts
+
+results = topTable(fit2,coef = "Interaction",
+                   number = Inf, adjust = "BH")
+                 
+
+colnames(results)[2] = "log2FoldChange"
+colnames(results)[6] = "padj"
