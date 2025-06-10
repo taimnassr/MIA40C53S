@@ -11,6 +11,7 @@
 setwd("/mnt/d/Data_Analysis/NGS_KW_MIA40C53S/count_data")
 count_data = read.csv("valid_count_data.csv",
                       header = TRUE)
+count_data = read.csv("count_data/valid_count_data.csv")
 count_matrix = as.matrix(count_data[,
                           c(4:ncol(count_data))])
 row.names(count_matrix) = count_data$Gene_name
@@ -615,3 +616,22 @@ results = topTable(fit2,coef = "Interaction",
 
 colnames(results)[2] = "log2FoldChange"
 colnames(results)[6] = "padj"
+
+write.csv(results,
+          "count_data/Limma_C53S_vs_WT_24h_vs_0h.csv",
+          row.names = TRUE)
+head(results)
+results$ID = make.unique(results$ID)
+rownames(results) = results$ID
+
+##now we plot the volcano plot
+volcano_limma = volcano_plots2(results,
+                             title =  "Limma results C53S vs WT 24h vs 0h",
+                             log2fc_threshold = 0.5,
+                             padj_threshold = 0.05)
+volcano_limma = volcano_limma + ylim(0,3)
+volcano_limma
+pdf("plots/Volcano_plots/Volcano_Plot_LIMMA_C53S_vs_WT_24h_vs_0h.pdf",
+    width = 10, height = 8)
+volcano_limma
+dev.off()
