@@ -104,3 +104,102 @@ gsea_result_mock = gseGO(geneList = gsea_mock,
                          pvalueCutoff = 0.05)
 gsea_result_mock = as.data.frame(gsea_result_mock)
 ####now the graphs
+
+GSEA_KEGG_df_to_dotplot <- function(GSEA_df, 
+                                    num_entries =20, title){
+  ##this is a function that takes a DATA frame of the
+  #results of the GSEA or KEGG and then plots the dotplot
+  #it all takes how many GO terms we need to graph,
+  #the default is num_entries = 20
+  
+  ##make sure the input is converted to dataframe before
+  
+  
+  
+  ##here you have to make sure that the NES column, p.adj, 
+  # setsize, and Description exists 
+  
+  ##title tell us what the title of the graph should be
+  colnames_to_check = c("Description", "NES", "p.adjust",
+                        "setSize")
+  
+  if (!all(colnames_to_check %in% colnames(GSEA_df))){
+    stop("Required Columns are not present in the dataframe")
+  }
+  
+  ###take the top num_entries entries based on their ABSOLUTE
+  #NES value
+  
+  ##to make sure there is equal representations
+  # we will take the top 10 upregulated and top 10 downregulated
+  
+  GSEA_pos = GSEA_df[GSEA_df$NES > 0,]
+  GSEA_top = GSEA_pos[order(abs(GSEA_pos$NES),
+                            decreasing = TRUE),]
+  
+  GSEA_top = GSEA_top[1:(num_entries/2),] ## here the top 10 upregulated terms
+  
+  GSEA_neg = GSEA_df[GSEA_df$NES < 0,]
+  GSEA_btm = GSEA_neg[order(abs(GSEA_neg$NES),
+                            decreasing = TRUE),]
+  
+  GSEA_btm = GSEA_btm[1:(num_entries/2),] ## here the top 10 downregulated terms
+  GSEA_input = rbind(GSEA_top, GSEA_btm)
+  ##then we order the input
+  ## we order the description based on NES Value
+  #this is important in the graph for factoring
+  
+  #remove rows containing NA
+  GSEA_input = na.omit(GSEA_input)
+  
+  GSEA_input$Description = factor(GSEA_input$Description,
+                                  levels = GSEA_input$Description[order(GSEA_input$NES)])
+  
+  
+  suppressPackageStartupMessages(library(ggplot2))
+  ##maybe we need to tranform NES to visualize better
+  
+  dotplot = ggplot(GSEA_input, aes(x = NES,
+                                   y = Description,
+                                   size = setSize,
+                                   color = p.adjust))+
+    scale_size_continuous(range = c(1,10),
+                          limits = c(min(GSEA_input$setSize),
+                                     max(GSEA_input$setSize)),
+                          breaks = seq(min(GSEA_input$setSize),
+                                       max(GSEA_input$setSize),
+                                       by = 80))+
+    geom_point() + 
+    labs( x = "Normalized Enrichment Value (NES)",
+          y = "GO Term",
+          title = title,
+          size = "Number of genes per Go Term",
+          color = "Adjusted P.value")+ theme_minimal()+
+    theme(axis.text.y = element_text(size = 10),
+          plot.title = element_text(size = 20),
+          axis.title = element_text(size = 14)) +
+    scale_color_gradient(low = "blue",
+                         high = "red",
+                         limits = c(0,0.05)) 
+  
+  return(dotplot)
+}
+
+plot_c53s = GSEA_KEGG_df_to_dotplot(gsea_result_c53s, 20,
+                                    "GSEA C53S 24h vs 4h")
+pdf("plots/GSEA/GSEA_C53S_24h_vs_4h.pdf", width = 10, heigh=8)
+plot_c53s
+dev.off()
+
+plot_wt = GSEA_KEGG_df_to_dotplot(gsea_result_wt, 20,
+                                    "GSEA WT 24h vs 4h")
+pdf("plots/GSEA/GSEA_WT_24h_vs_4h.pdf", width = 10, heigh=8)
+plot_wt
+dev.off()
+
+plot_mock = GSEA_KEGG_df_to_dotplot(gsea_result_mock, 20,
+                                  "GSEA Mock 24h vs 4h")
+pdf("plots/GSEA/GSEA_MOck_24h_vs_4h.pdf", width = 10, heigh=8)
+plot_mock
+dev.off()
+

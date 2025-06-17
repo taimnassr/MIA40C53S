@@ -635,3 +635,58 @@ pdf("plots/Volcano_plots/Volcano_Plot_LIMMA_C53S_vs_WT_24h_vs_0h.pdf",
     width = 10, height = 8)
 volcano_limma
 dev.off()
+
+
+#####Here I am trying to graph the top RPKM for the DEG of C53S between 24h and 0h
+##### I am using the top 25 instead of only the top 10
+
+deg_c53s = read.csv("count_data/DESeq2_results_C53S_24h_vs_0h.csv")
+####now we will chose which genes that have the following
+## avs(log2fc) > 0.5 and p.adj < 0.05
+deg_c53s = deg_c53s[abs(deg_c53s$log2FoldChange) > 0.5 &
+                      deg_c53s$padj < 0.05, ]
+deg_c53s = na.omit(deg_c53s)
+
+deg_c53s = deg_c53s$X
+## now we have our gene names let us do the RPKM graph
+rpkm = read.csv("count_data/rpkm.csv")
+head(rpkm)
+ncol(rpkm)
+
+gene_to_ensembl = read.csv("count_data/ensembl_to_gene_conversion.csv")
+head(gene_to_ensembl)
+rpkm2 = merge(rpkm, gene_to_ensembl,
+              by.x = "X", by.y = "V1")
+ncol(rpkm2)
+rpkm3 = rpkm2[, grepl("0h|24h", colnames(rpkm2))]
+
+rpkm3$gene = rpkm2$V2
+### now let us keep only our genes
+rpkm3 = rpkm3[rpkm3$gene %in% deg_c53s,]
+### now we finally have our rpkm3
+
+library(tidyr)
+rpkm4 = pivot_longer(rpkm3,
+                     cols = -gene,
+                     names_to = c("Condition", "Time", "Replicate"),
+                     names_sep ="\\.",
+                     values_to = "RPKM")
+head(rpkm4)
+rpkm4 = as.data.frame(rpkm4)
+## let us go to graphing 
+library(ggplot2)
+rpkm_graph = ggplot(rpkm4, aes(x = gene, 
+                              y = log10(RPKM),
+                              color = Time,
+                              shape = Condition))+
+  geom_jitter( fill = NA, size = 3) +
+  scale_shape_manual(values =c("WT" = 21,
+                               "C53S" =22,
+                               "Mock" = 24)) +
+  labs(x = "Gene Name", y = "Log 10 RPKM Value")
+rpkm_graph
+
+pdf("plots/RPKM_top_20_DEG_C53S_24_vs_0.pdf", width = 10,
+    height = 8)
+rpkm_graph
+dev.off()
