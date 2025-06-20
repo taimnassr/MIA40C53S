@@ -686,7 +686,54 @@ rpkm_graph = ggplot(rpkm4, aes(x = gene,
   labs(x = "Gene Name", y = "Log 10 RPKM Value")
 rpkm_graph
 
-pdf("plots/RPKM_top_20_DEG_C53S_24_vs_0.pdf", width = 10,
+pdf("plots/RPKM_top_20_DEG_C53S_24_vs_0.pdf", width = 15,
     height = 8)
 rpkm_graph
 dev.off()
+
+
+################## now I want to compare C53S to mock similar to wt
+
+####load the data 
+count_data = read.csv("count_data/valid_count_data.csv")
+head(count_data)
+count_marix = as.matrix(count_data[,-c(1:3)])
+rownames(count_marix) = make.unique(count_data$Gene_name)                      
+colnames = colnames(count_marix)
+condition = stringr::str_extract(colnames, pattern = "^[^.]+")
+time = stringr::str_extract(colnames, "\\d+h")
+coldata = data.frame(row.names = colnames,
+                     condition = condition,
+                     time = time)
+coldata$time = factor(coldata$time,
+                      levels = c("0h", "4h", "12h","24h"))
+coldata_mock = coldata
+coldata_mock$condition = factor(coldata_mock$condition,
+                                levels = c("Mock", "WT", "C53S"))
+coldata_both = coldata
+coldata_both$condition[coldata_both$condition == "WT" |
+                         coldata_both$condition == "C53S"] = "Non-Mock"
+coldata_both$condition = factor(coldata_both$condition,
+                                levels = c("Mock", "Non-Mock"))
+###now the data is prepared let us do deseq
+
+library(DESeq2)
+dds_mock = DESeqDataSetFromMatrix(countData = count_marix,
+                                  colData = coldata_mock,
+                                  design = ~ condition + time + condition:time)
+dds_mock = DESeq(dds_mock)
+results_mock = results(dds_mock, name = "conditionC53S.time24h")
+results_mock = as.data.frame(results_mock)
+write.csv(results_mock,"count_data/DESeq2_results_C53S_24h_vs_0h_vs_Mock.csv",
+          row.names = FALSE)
+
+dds_both = DESeqDataSetFromMatrix(countData = count_marix,
+                                  colData = coldata_both,
+                                  design = ~ condition + time + condition:time)
+dds_both = DESeq(dds_both)
+resultsNames(dds_both)
+results_both = results(dds_both, name = "conditionNon.Mock.time24h")
+results_both = as.data.frame(results_both)
+head(results_both)
+write.csv(results_both,"count_data/DESeq2_results_Non_Mock_24h_vs_0h_vs_Mock.csv",
+          row.names = FALSE)

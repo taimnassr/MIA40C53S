@@ -35,3 +35,9 @@ Volcano_Plot_LIMMA_C53S_vs_WT_24h_vs_0h
 this is plotting the LIMMA results from comparing
 C53S to WT in the 24h vs 0h change 
 abs(log2fc) > 0.5 and p.adj < 0.05
+
+Volcano_Plot_DESeq2_C53S_vs_Mock_24h_vs_0h
+This is the volcano plot for the log2fc between C53S and Mock comparing 24h to 0h (so what specific changes happens in C53S between 24h and 0h that doesn't happen in Mock). The thresholds put here is abs.log2fc more than 0.5 and p.adj < 0.05.
+
+Volcano_Plot_DESeq2_Non_Mock_vs_Mock_24h_vs_0h
+This is similar to the one directly before but here WT and C53S were clustered together into one condition (called non-mock) whose specific changes between 24h and 0h were compared to that in mock with the blue lines showing a threshold of abs log2fc more than 0.5 and p.adj < 0.05

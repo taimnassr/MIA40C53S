@@ -87,3 +87,9 @@ https://www.atakanekiz.com/technical/a-guide-to-designs-and-contrasts-in-DESeq2/
 
 Limma_C53S_vs_WT_24h_vs_0h
 this is comparing C53S to WT in the 24h vs 0h change using Limma
+
+DESeq2_results_C53S_24h_vs_0h_vs_Mock
+This is the results of the DESeq2 comparison between C53S and Mock at 24h vs 0 h (so what specific changes happen to C53s between 24h and 0h without happening to mock).
+
+DESeq2_results_Non_Mock_24h_vs_0h_vs_Mock
+Here C53S and WT were clustered into one condition that is called (non-mock) and this comparison shows the specific changes that happen in non-mock between 24h and 0h that don't happen in mock
